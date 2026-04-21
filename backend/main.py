@@ -86,6 +86,7 @@ GEOJSON_PATH = _resolve_existing_path(
 )
 GRAPH_PATH = _resolve_existing_path(
     "GRAPH_PATH",
+    "geojson/bangalore_graph.graphml",
     "data/bangalore_graph.graphml",
     "bangalore_graph.graphml",
     "data/processed/bangalore_graph.graphml",
