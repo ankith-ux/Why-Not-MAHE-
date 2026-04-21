@@ -30,7 +30,7 @@ ookla_q4_2024/
 frontend.zip
 
 # Large data/model artifacts (keep code in repo, host data externally)
-data/
+data_bnglr/
 bangalore_buildings.geojson
 bangalore_graph.graphml
 states_india.geojson
