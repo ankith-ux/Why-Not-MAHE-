@@ -3,8 +3,12 @@ import requests
 import json
 import geopandas as gpd
 from shapely.geometry import shape
+from pathlib import Path
 
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+GEOJSON_DIR = PROJECT_ROOT / "geojson"
 
 # Bangalore bounding box
 QUERY = """
@@ -60,7 +64,9 @@ for el in data['elements']:
 print(f"Parsed {len(buildings)} building polygons")
 
 # Save as GeoJSON
-with open("bangalore_buildings.geojson", "w") as f:
+GEOJSON_DIR.mkdir(parents=True, exist_ok=True)
+buildings_out = GEOJSON_DIR / "bangalore_buildings.geojson"
+with buildings_out.open("w") as f:
     json.dump({
         "type": "FeatureCollection",
         "features": [
@@ -73,4 +79,4 @@ with open("bangalore_buildings.geojson", "w") as f:
         ]
     }, f)
 
-print("Saved → bangalore_buildings.geojson")
+print(f"Saved → {buildings_out}")

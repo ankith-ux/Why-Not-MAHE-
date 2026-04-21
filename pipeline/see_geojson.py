@@ -1,7 +1,24 @@
 import geopandas as gpd  # ← gpd, not gdf
 import matplotlib.pyplot as plt
+from pathlib import Path
 
-gdf = gpd.read_file("scored_segments.geojson")  # ← gdf is now your dataframe
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+
+
+def _first_existing(*candidates: Path) -> Path:
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+
+GEOJSON_PATH = _first_existing(
+    PROJECT_ROOT / "geojson/scored_segments.geojson",
+    PROJECT_ROOT / "scored_segments.geojson",
+)
+
+gdf = gpd.read_file(GEOJSON_PATH)  # ← gdf is now your dataframe
 
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 

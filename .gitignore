@@ -34,3 +34,5 @@ data/
 bangalore_buildings.geojson
 bangalore_graph.graphml
 states_india.geojson
+geojson/bangalore_buildings.geojson
+geojson/states_india.geojson

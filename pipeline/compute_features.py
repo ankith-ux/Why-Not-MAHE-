@@ -14,6 +14,7 @@ import osmnx as ox
 import rasterio
 import math
 import multiprocessing as mp
+from pathlib import Path
 from rasterio.merge import merge
 from shapely.geometry import LineString, Point, shape as geo_shape
 from shapely.strtree import STRtree
@@ -22,6 +23,18 @@ import h3
 import json
 import warnings
 warnings.filterwarnings('ignore')
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+DATA_DIR = PROJECT_ROOT / "data"
+GEOJSON_DIR = PROJECT_ROOT / "geojson"
+
+
+def _first_existing(*candidates: Path) -> Path:
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
 
 # ── GPU SETUP ─────────────────────────────────────────────────────────────────
 try:
@@ -35,17 +48,29 @@ except Exception:
     print("[GPU] CuPy not available — falling back to NumPy.")
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
-GRAPH_PATH      = "bangalore_graph.graphml"
-BUILDINGS_PATH  = "bangalore_buildings.geojson"
-OOKLA_PATH      = "ookla_q4_2024/2024-10-01_performance_fixed_tiles.parquet"
-SRTM_TILES      = ["N12E077.hgt", "N13E077.hgt"]
+GRAPH_PATH      = _first_existing(
+    DATA_DIR / "bangalore_graph.graphml",
+    PROJECT_ROOT / "bangalore_graph.graphml",
+)
+BUILDINGS_PATH  = _first_existing(
+    GEOJSON_DIR / "bangalore_buildings.geojson",
+    PROJECT_ROOT / "bangalore_buildings.geojson",
+)
+OOKLA_PATH      = _first_existing(
+    DATA_DIR / "ookla_q4_2024/2024-10-01_performance_fixed_tiles.parquet",
+    PROJECT_ROOT / "ookla_q4_2024/2024-10-01_performance_fixed_tiles.parquet",
+)
+SRTM_TILES      = [
+    _first_existing(DATA_DIR / "N12E077.hgt", PROJECT_ROOT / "N12E077.hgt"),
+    _first_existing(DATA_DIR / "N13E077.hgt", PROJECT_ROOT / "N13E077.hgt"),
+]
 TOWER_FILES     = {
-    'jio':    "towers_jio.parquet",
-    'airtel': "towers_airtel.parquet",
-    'vi':     "towers_vi.parquet",
-    'bsnl':   "towers_bsnl.parquet",
+    'jio':    _first_existing(DATA_DIR / "towers_jio.parquet", PROJECT_ROOT / "towers_jio.parquet"),
+    'airtel': _first_existing(DATA_DIR / "towers_airtel.parquet", PROJECT_ROOT / "towers_airtel.parquet"),
+    'vi':     _first_existing(DATA_DIR / "towers_vi.parquet", PROJECT_ROOT / "towers_vi.parquet"),
+    'bsnl':   _first_existing(DATA_DIR / "towers_bsnl.parquet", PROJECT_ROOT / "towers_bsnl.parquet"),
 }
-OUT_PATH = "features_real.parquet"
+OUT_PATH = DATA_DIR / "features_real.parquet"
 
 # Using half the logical cores to keep the system responsive.
 # Raise N_WORKERS toward mp.cpu_count() (20) once things are stable.
@@ -350,8 +375,10 @@ if __name__ == '__main__':
     batch_num  = 0
     records    = []
 
+    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+
     def flush(records, batch_num):
-        path = f"{OUT_PATH}.part{batch_num}"
+        path = Path(f"{OUT_PATH}.part{batch_num}")
         pd.DataFrame(records).to_parquet(path, index=False)
         part_files.append(path)
         print(f"  → flushed batch {batch_num} ({len(records)} records) to {path}")

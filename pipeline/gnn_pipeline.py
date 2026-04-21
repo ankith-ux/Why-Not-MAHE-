@@ -7,17 +7,36 @@ import numpy as np
 import pandas as pd
 import osmnx as ox
 import json
+from pathlib import Path
 from torch_geometric.data import Data
 from torch_geometric.nn import SAGEConv, GraphNorm
 from sklearn.preprocessing import StandardScaler
 import pickle
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+DATA_DIR = PROJECT_ROOT / "data"
+GEOJSON_DIR = PROJECT_ROOT / "geojson"
+
+
+def _first_existing(*candidates: Path) -> Path:
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
 # ── CONFIG ────────────────────────────────────────────────────────────────────
-FEATURES_PATH = "features_real.parquet"
-GRAPH_PATH    = "bangalore_graph.graphml"
-MODEL_OUT     = "best_model.pt"
-SCALER_OUT    = "scaler.pkl"
-GEOJSON_OUT   = "scored_segments.geojson"
+FEATURES_PATH = _first_existing(
+    DATA_DIR / "features_real.parquet",
+    PROJECT_ROOT / "features_real.parquet",
+)
+GRAPH_PATH    = _first_existing(
+    DATA_DIR / "bangalore_graph.graphml",
+    PROJECT_ROOT / "bangalore_graph.graphml",
+)
+MODEL_OUT     = DATA_DIR / "best_model.pt"
+SCALER_OUT    = DATA_DIR / "scaler.pkl"
+GEOJSON_OUT   = GEOJSON_DIR / "scored_segments.geojson"
 EPOCHS        = 2000
 LR            = 0.001
 PATIENCE      = 120
@@ -121,6 +140,7 @@ def build_pyg_graph(features_path, graph_path):
     scaler = StandardScaler()
     scaler.fit(X[labeled_mask.values])
     X_norm = scaler.transform(X)
+    SCALER_OUT.parent.mkdir(parents=True, exist_ok=True)
     with open(SCALER_OUT, 'wb') as f:
         pickle.dump(scaler, f)
 
@@ -220,6 +240,7 @@ def train(data):
                 best_val_mae = val_mae
                 best_epoch   = epoch
                 patience_cnt = 0
+                MODEL_OUT.parent.mkdir(parents=True, exist_ok=True)
                 torch.save(model.state_dict(), MODEL_OUT)
             else:
                 patience_cnt += 1
@@ -301,6 +322,7 @@ def export_geojson(model, data, df, G, edge_list):
         })
 
     geojson = {"type": "FeatureCollection", "features": features}
+    GEOJSON_OUT.parent.mkdir(parents=True, exist_ok=True)
     with open(GEOJSON_OUT, 'w') as f:
         json.dump(geojson, f)
     print(f"  Exported {len(features)} segments → {GEOJSON_OUT}")

@@ -78,12 +78,15 @@ def _resolve_existing_path(env_var: str, *candidates: str) -> Optional[Path]:
 
 GEOJSON_PATH = _resolve_existing_path(
     "SCORED_SEGMENTS_PATH",
+    "geojson/scored_segments.geojson",
+    "geojson/bangalore_scored_segments.geojson",
     "scored_segments.geojson",
     "data/output/bangalore_scored_segments.geojson",
     "data/output/scored_segments.geojson",
 )
 GRAPH_PATH = _resolve_existing_path(
     "GRAPH_PATH",
+    "data/bangalore_graph.graphml",
     "bangalore_graph.graphml",
     "data/processed/bangalore_graph.graphml",
 )
@@ -328,7 +331,7 @@ async def startup():
               f"{sum(len(v) for v in H3_TILES.values())} H3 tiles")
     else:
         print("[STARTUP] WARNING: scored segments GeoJSON not found.")
-        print("[STARTUP] Set SCORED_SEGMENTS_PATH or place scored_segments.geojson in the workspace root.")
+        print("[STARTUP] Set SCORED_SEGMENTS_PATH or place scored_segments.geojson in geojson/ or workspace root.")
 
     # Load graph (optional, for OSRM fallback routing)
     if GRAPH_PATH and GRAPH_PATH.exists():

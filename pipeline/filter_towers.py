@@ -1,5 +1,17 @@
 # filter_towers.py — run from inside archive/
 import pandas as pd
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+DATA_DIR = PROJECT_ROOT / "data"
+
+
+def _first_existing(*candidates: Path) -> Path:
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
 
 BBOX = {'lat_min': 12.834, 'lat_max': 13.139, 
         'lon_min': 77.469, 'lon_max': 77.748}
@@ -45,8 +57,9 @@ FREQ_MAP = {
 
 dfs = []
 for fname in ['404.csv', '405.csv']:
-    print(f"Loading {fname}...")
-    df = pd.read_csv(fname)
+    csv_path = _first_existing(DATA_DIR / fname, PROJECT_ROOT / fname)
+    print(f"Loading {csv_path}...")
+    df = pd.read_csv(csv_path)
     # rename columns to standard names
     df = df.rename(columns={'long': 'lon', 'sample': 'samples'})
     dfs.append(df)
@@ -79,7 +92,9 @@ for carrier, parts in carrier_dfs.items():
         continue
     cdf = pd.concat(parts, ignore_index=True)
     cdf = cdf[['lat','lon','radio','freq_mhz','range','samples','carrier','mnc','mcc']].copy()
-    cdf.to_parquet(f"towers_{carrier}.parquet", index=False)
-    print(f"  {carrier}: {len(cdf)} towers → towers_{carrier}.parquet")
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = DATA_DIR / f"towers_{carrier}.parquet"
+    cdf.to_parquet(out_path, index=False)
+    print(f"  {carrier}: {len(cdf)} towers → {out_path}")
 
-print("\nDone. Tower files written to current directory.")
+print(f"\nDone. Tower files written to {DATA_DIR}.")

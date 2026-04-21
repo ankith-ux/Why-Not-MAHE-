@@ -1,6 +1,22 @@
 import osmnx as ox
+from pathlib import Path
 
-G = ox.load_graphml("bangalore_graph.graphml")
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+GRAPH_PATH_CANDIDATES = [
+    PROJECT_ROOT / "data" / "bangalore_graph.graphml",
+    PROJECT_ROOT / "bangalore_graph.graphml",
+]
+
+
+def _first_existing(candidates):
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+graph_path = _first_existing(GRAPH_PATH_CANDIDATES)
+G = ox.load_graphml(graph_path)
 
 point_lat = 12.9250
 point_lon = 77.5938

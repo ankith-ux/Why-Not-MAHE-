@@ -5,10 +5,14 @@ import requests
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import os
+from pathlib import Path
 from PIL import Image
 from io import BytesIO
 from transformers import SegformerImageProcessor, SegformerForSemanticSegmentation
 import torch.nn.functional as F
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+CV_VIS_OUT = SCRIPT_DIR / "cv_demo_visual.png"
 
 MAPILLARY_TOKEN = os.getenv("MAPILLARY_TOKEN", "")
 MAPILLARY_IDS   = ["485784672764267", "2569959863298910", "466943704532607"]
@@ -229,9 +233,9 @@ def run():
     )
 
     plt.tight_layout(rect=[0, 0, 0.75, 0.99])
-    plt.savefig("cv_demo_visual.png", dpi=150, bbox_inches='tight',
+    plt.savefig(CV_VIS_OUT, dpi=150, bbox_inches='tight',
                 facecolor='#1a1a2e')
-    print("\nSaved → cv_demo_visual.png")
+    print(f"\nSaved → {CV_VIS_OUT}")
     plt.show()
 
 if __name__ == "__main__":

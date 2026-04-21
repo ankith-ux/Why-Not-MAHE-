@@ -6,7 +6,26 @@ import torch
 import numpy as np
 import json
 import os
+from pathlib import Path
 from transformers import SegformerImageProcessor, SegformerForSemanticSegmentation
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+DATA_DIR = PROJECT_ROOT / "data"
+
+
+def _first_existing(*candidates: Path) -> Path:
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
+
+
+FEATURES_SYNTH_PATH = _first_existing(
+    DATA_DIR / "features_synthetic.parquet",
+    SCRIPT_DIR / "features_synthetic.parquet",
+)
+CV_DEMO_OUT = SCRIPT_DIR / "cv_demo_segment.json"
 
 MAPILLARY_TOKEN  = os.getenv("MAPILLARY_TOKEN", "")
 SEGMENT_OSM_ID   = "780853199"
@@ -29,7 +48,7 @@ def fetch_image(image_id):
     
     img_bytes = requests.get(data['thumb_2048_url'], timeout=30).content
     img = Image.open(BytesIO(img_bytes)).convert('RGB')
-    img.save(f"mapillary_{image_id}.jpg")  # save so you can verify what was fetched
+    img.save(SCRIPT_DIR / f"mapillary_{image_id}.jpg")  # save so you can verify what was fetched
     print(f"  Fetched {image_id} — size {img.size}")
     return img
 
@@ -83,7 +102,7 @@ def hata_rsrp_from_svf(svf, building_density, base_rsrp=-75.0):
 # ── STEP 4: Pull geometric SVF from synthetic parquet (real later) ────────────
 def get_geometric_svf(osm_way_id):
     import pandas as pd
-    df = pd.read_parquet("features_synthetic.parquet")
+    df = pd.read_parquet(FEATURES_SYNTH_PATH)
     row = df[df['osm_way_id'] == osm_way_id]
     if row.empty:
         print(f"Way ID {osm_way_id} not in parquet — using fallback values")
@@ -130,7 +149,7 @@ if __name__ == "__main__":
         "camera_error_db":         round(abs(camera_rsrp - ground_truth_dbm), 2)
     }
 
-    with open("cv_demo_segment.json", "w") as f:
+    with CV_DEMO_OUT.open("w") as f:
         json.dump(result, f, indent=2)
 
     print("\n=== RESULT ===")
