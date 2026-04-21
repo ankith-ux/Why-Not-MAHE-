@@ -1,0 +1,20 @@
+{
+  "osm_way_id": "780853199",
+  "segment_coords": [
+    12.924909644114436,
+    77.58993710216282
+  ],
+  "road_name": "26th Main Road, Jayanagar",
+  "mapillary_image_ids": [
+    "485784672764267",
+    "2569959863298910",
+    "466943704532607"
+  ],
+  "geometric_svf": 0.914,
+  "camera_svf": 0.028,
+  "geometric_rsrp_estimate": -76.95,
+  "camera_rsrp_estimate": -97.0,
+  "ground_truth_rsrp": -87.2,
+  "geometric_error_db": 10.25,
+  "camera_error_db": 9.8
+}

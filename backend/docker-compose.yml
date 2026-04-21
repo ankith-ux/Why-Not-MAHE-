@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  osrm:
+    image: osrm/osrm-backend
+    container_name: connectivity_osrm
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../osrm-data:/data
+    command: >
+      osrm-routed
+        --algorithm mld
+        /data/southern-zone-latest.osrm
+        --max-table-size 10000
+        --max-trip-size 200
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s  # OSRM takes time to load Bangalore graph
+
+  redis:
+    image: redis:7-alpine
+    container_name: connectivity_redis
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+        --maxmemory 512mb
+        --maxmemory-policy allkeys-lru
+        --save ""
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  default:
+    name: connectivity_net

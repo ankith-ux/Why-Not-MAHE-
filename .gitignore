@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+env/
+mahe_venv/
+
+# Node / frontend build
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+.codex
+
+# Logs
+*.log
+
+# Local caches and generated artifacts
+cache/
+ookla_q4_2024/
+frontend.zip
+
+# Large data/model artifacts (keep code in repo, host data externally)
+data/
+bangalore_buildings.geojson
+bangalore_graph.graphml
+states_india.geojson
