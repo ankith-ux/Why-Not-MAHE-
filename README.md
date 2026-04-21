@@ -7,6 +7,40 @@ NeuralPath scores every road segment in Bangalore by its expected cellular signa
 
 ---
 
+## Quick Start (Run Backend + Frontend)
+
+Run these from the repository root.
+
+### Terminal 1 — Backend API
+
+```bash
+cd /home/ankith/mahe_ws
+source mahe_venv/bin/activate
+pip install -r backend/requirements.txt
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Backend URL: `http://localhost:8000`
+
+### Terminal 2 — Frontend
+
+```bash
+cd /home/ankith/mahe_ws/frontend
+npm install
+npm run dev
+```
+
+Frontend URL (Vite default): `http://localhost:5173`
+
+### Optional: Start OSRM + Redis (if needed for full routing stack)
+
+```bash
+cd /home/ankith/mahe_ws/backend
+docker-compose up -d
+```
+
+---
+
 ## What It Does
 
 Standard routing engines (OSRM, Google Maps) optimise for time and distance. They have no awareness of where a vehicle will lose connectivity. NeuralPath adds a third axis: **signal reliability**.
@@ -134,40 +168,43 @@ python3 data-pipeline/cv/cv_demo.py
 
 ---
 
-## Backend — Setup & Run
+## Backend + Frontend — Setup & Run
 
 ### Prerequisites
 
 - Python 3.10+
-- Docker + Docker Compose
-- The scored GeoJSON at `data/output/bangalore_scored_segments.geojson`
+- Node.js 18+
+- Docker + Docker Compose (optional, for OSRM + Redis)
+- Scored segments file available at `geojson/scored_segments.geojson`
 
-### Install
+### Backend
 
 ```bash
-cd neuralpath-backend
-python3 -m venv venv
-source venv/bin/activate
-pip install fastapi uvicorn httpx redis h3
+cd /home/ankith/mahe_ws
+source mahe_venv/bin/activate
+pip install -r backend/requirements.txt
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### Start infrastructure
+### Frontend
 
 ```bash
+cd /home/ankith/mahe_ws/frontend
+npm install
+npm run dev
+```
+
+### Optional Infrastructure (OSRM + Redis)
+
+```bash
+cd /home/ankith/mahe_ws/backend
 docker-compose up -d
-# Starts OSRM on :5000 and Redis on :6379
-# OSRM takes ~90 seconds to load the Bangalore graph
 ```
 
-### Start API server
+### Run backend test script
 
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
-
-### Run tests
-
-```bash
+cd /home/ankith/mahe_ws/backend
 python3 test_api.py
 ```
 
@@ -302,7 +339,3 @@ Submit a live vehicle signal report to override a segment's score.
 11. Congestion zone boundaries are fixed for the demo period
 
 ---
-
-## License
-
-Data sources are subject to their respective licenses listed above. Code in this repository is released under the MIT License.
